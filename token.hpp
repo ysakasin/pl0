@@ -45,6 +45,7 @@ enum class TokenType {
 
 class Token {
 public:
+  Token() : type(TokenType::TEOF) {}
   Token(TokenType type) : type(type) {}
   Token(long long integer) : type(TokenType::Integer), integer(integer) {}
   Token(std::string &&ident) : type(TokenType::Ident), ident(ident) {}

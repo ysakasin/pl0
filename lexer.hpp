@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace pl0 {
 class Token;
@@ -13,7 +14,10 @@ class Lexer {
 public:
   Lexer(const std::string &path);
   Token nextToken();
+  Token take(TokenType type);
+  void untake(Token &&token);
   void print_all();
+  void print_head();
 
 private:
   void skip_blank();
@@ -32,5 +36,6 @@ private:
   std::string source_program;
   std::string path;
   size_t head = 0;
+  std::vector<Token> buffer;
 };
 } // namespace pl0

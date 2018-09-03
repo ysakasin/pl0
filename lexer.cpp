@@ -25,6 +25,12 @@ Lexer::Lexer(const std::string &path) : path(path) {
 }
 
 Token Lexer::nextToken() {
+  if (buffer.size() > 0) {
+    auto t = buffer.back();
+    buffer.pop_back();
+    return std::move(t);
+  }
+
   skip_blank();
   switch (peekc()) {
   case '0' ... '9':
@@ -75,7 +81,7 @@ Token Lexer::nextToken() {
   case ':':
     readc();
     if (try_readc('=')) {
-      return std::move(Token(TokenType::Semicolon));
+      return std::move(Token(TokenType::Assign));
     } else {
       throw "'=' is expected, but it is not.";
     }
@@ -89,6 +95,16 @@ Token Lexer::nextToken() {
     throw "invalid char";
   }
 }
+
+Token Lexer::take(TokenType type) {
+  Token t = nextToken();
+  if (t.type != type) {
+    throw "unexpected token";
+  }
+  return std::move(t);
+}
+
+void Lexer::untake(Token &&token) { buffer.push_back(std::move(token)); }
 
 void Lexer::print_all() {
   while (true) {
@@ -130,6 +146,8 @@ Token Lexer::read_ident() {
     return std::move(Token(itr->second));
   }
 }
+
+void Lexer::print_head() { std::cout << "head: " << head << std::endl; }
 
 void Lexer::init_keywords() {
   if (keywords.size() != 0) {

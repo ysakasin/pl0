@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "./lexer.hpp"
+#include "./compiler.hpp"
 #include "./token.hpp"
 
 int main(int argc, char *argv[]) {
@@ -9,6 +9,9 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  pl0::Lexer lexer(argv[1]);
-  lexer.print_all();
+  // pl0::Lexer lexer(argv[1]);
+  // lexer.print_all();
+  pl0::Compiler compiler(argv[1]);
+  auto program = compiler.compile();
+  pl0::print_program(program);
 }
