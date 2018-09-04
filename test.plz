@@ -1,0 +1,21 @@
+function gcd(x, y)
+begin
+  if x <> y then
+    begin
+      if x < y then return gcd(x, y - x);
+      return  gcd(x - y, x);
+    end;
+  return x;
+end
+
+const m = 7, n = 85;
+var x, y;
+
+begin
+  x := 84;
+  y := 36;
+  if x < y then write x;
+  if y < x then write y;
+  if x <> y then write 999;
+  write gcd(x,y)
+end;

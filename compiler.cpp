@@ -7,22 +7,30 @@
 using namespace pl0;
 
 Program Compiler::compile() {
-  block();
+  ident_table.appendFunc("main", 0, 0);
+  block(0);
   return program;
 }
 
-void Compiler::block() {
+void Compiler::block(size_t func_id) {
+  size_t var_size = 0;
+  size_t backpatch_target = append(Instruction::Jmp, 0);
   while (true) {
     if (cur_token.type == TokenType::Const) {
       constDecl();
     } else if (cur_token.type == TokenType::Var) {
-      varDecl();
+      varDecl(&var_size);
     } else if (cur_token.type == TokenType::Function) {
       functionDecl();
     } else {
       break;
     }
   }
+  backpatch(backpatch_target);
+
+  append(Instruction::Ict, var_size);
+
+  cur_func_id = func_id;
   statement();
 }
 
@@ -60,7 +68,7 @@ void Compiler::constDecl() {
   }
 }
 
-void Compiler::varDecl() {
+void Compiler::varDecl(size_t *var_size) {
   takeToken(TokenType::Var);
   while (true) {
     if (cur_token.type != TokenType::Ident) {
@@ -68,6 +76,7 @@ void Compiler::varDecl() {
     }
 
     ident_table.appendVar(cur_token.ident);
+    (*var_size)++;
     nextToken();
 
     if (cur_token.type == TokenType::Colon) {
@@ -111,14 +120,18 @@ void Compiler::functionDecl() {
   }
   takeToken(TokenType::ParenR);
 
-  ident_table.appendFunc(func_name, entry_point, params.size());
+  size_t func_id =
+      ident_table.appendFunc(func_name, entry_point, params.size());
 
   ident_table.enterBlock();
+  long long offset = -params.size();
   for (const auto &param : params) {
-    ident_table.appendParam(param);
+    ident_table.appendParam(param, offset++);
   }
 
-  block();
+  backpatch(backpatch_target);
+  block(func_id);
+  append(Instruction::Ret, ident_table.getLevel(), params.size());
   ident_table.leaveBlock();
 }
 
@@ -130,7 +143,6 @@ void Compiler::statement() {
   switch (cur_token.type) {
   case TokenType::Ident:
     info = &ident_table.find(cur_token.ident);
-    std::cout << info->name << std::endl;
     nextToken();
     takeToken(TokenType::Assign);
     expression();
@@ -177,7 +189,8 @@ void Compiler::statement() {
   case TokenType::Return:
     nextToken();
     expression();
-    append(Instruction::Ret, 0, 0);
+    info = &ident_table.get(cur_func_id);
+    append(Instruction::Ret, ident_table.getLevel(), info->param_size);
     break;
   case TokenType::Write:
     nextToken();
@@ -278,7 +291,6 @@ void Compiler::factor() {
       append(Instruction::Literal, info.value);
       break;
     case IdType::Function:
-      append(Instruction::Call, info.level, info.entry_point);
       takeToken(TokenType::ParenL);
       while (cur_token.type != TokenType::ParenR) {
         params++;
@@ -294,6 +306,7 @@ void Compiler::factor() {
       if (params != info.param_size) {
         throw "params not same";
       }
+      append(Instruction::Call, info.level, info.entry_point);
       break;
     case IdType::Var:
       append(Instruction::Load, info.level, info.addr);

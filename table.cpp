@@ -33,18 +33,19 @@ const IdInfo &Table::find(const std::string &id) const {
 }
 
 void Table::appendVar(const std::string &id) {
-  infos.emplace_back(id, cur_level, cur_addr++);
+  infos.emplace_back(id, cur_level, 2 + cur_addr++);
 }
 
-void Table::appendParam(const std::string &param) {
-  infos.emplace_back(param, cur_level, cur_addr++);
+void Table::appendParam(const std::string &param, long long offset) {
+  infos.emplace_back(param, cur_level, offset);
 }
 
 void Table::appendConst(const std::string &id, long long value) {
   infos.emplace_back(id, value);
 }
 
-void Table::appendFunc(const std::string &id, long long entry_point,
-                       long long param_size) {
-  infos.emplace_back(id, cur_level, entry_point, param_size);
+size_t Table::appendFunc(const std::string &id, long long entry_point,
+                         long long param_size) {
+  infos.emplace_back(id, cur_level + 1, entry_point, param_size);
+  return infos.size() - 1;
 }

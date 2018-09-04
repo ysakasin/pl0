@@ -8,7 +8,7 @@ begin a := x; b := y; c := 0;
     b := b / 2;
   end;
   return c
-end;
+end
 
 function divide(x, y)
   var r, q, w;
@@ -25,7 +25,7 @@ begin r := x; q := 0; w := y;
         end;
     end;
   return q
-end;
+end
 
 function gcd(x, y)
 begin
@@ -35,7 +35,7 @@ begin
       return  gcd(x - y, x);
     end;
   return x;
-end;
+end
 
 function gcd2(x, y)
 begin
@@ -45,7 +45,7 @@ begin
       if y < x then x := x - y;
     end;
   return x;
-end;
+end
 
 const m = 7, n = 85;
 var x, y;
@@ -69,4 +69,4 @@ begin
   write divide(x, y);
   write divide(x, gcd(x, y));
   writeln;
-end;
+end

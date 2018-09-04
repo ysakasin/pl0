@@ -18,9 +18,9 @@ public:
   Program compile();
 
 private:
-  void block();
+  void block(size_t func_id);
   void constDecl();
-  void varDecl();
+  void varDecl(size_t *var_size);
   void functionDecl();
   void statement();
   void condition();
@@ -45,5 +45,6 @@ private:
 
   Token cur_token;
   Token peek_token;
+  size_t cur_func_id;
 };
 } // namespace pl0

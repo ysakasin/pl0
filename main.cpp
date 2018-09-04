@@ -2,6 +2,7 @@
 
 #include "./compiler.hpp"
 #include "./token.hpp"
+#include "./vm.hpp"
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
@@ -13,5 +14,10 @@ int main(int argc, char *argv[]) {
   // lexer.print_all();
   pl0::Compiler compiler(argv[1]);
   auto program = compiler.compile();
-  pl0::print_program(program);
+  // pl0::print_program(program);
+
+  pl0::VM vm(program);
+  vm.eval();
+
+  return 0;
 }
