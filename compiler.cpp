@@ -131,6 +131,7 @@ void Compiler::functionDecl() {
 
   backpatch(backpatch_target);
   block(func_id);
+  takeToken(TokenType::Semicolon);
   append(Instruction::Ret, ident_table.getLevel(), params.size());
   ident_table.leaveBlock();
 }
