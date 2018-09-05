@@ -54,6 +54,8 @@ private:
   llvm::IRBuilder<> builder;
 
   llvm::Function *curFunc;
+  llvm::Function *writeFunc;
+  llvm::Function *writelnFunc;
 
   Lexer lexer;
 

@@ -18,3 +18,9 @@ llvm_map_components_to_libnames(llvm_libs all)
 add_executable(pl0 main.cpp lexer.cpp compiler.cpp table.cpp vm.cpp)
 add_executable(llvmpl0 llvm_frontend.cpp lexer.cpp)
 target_link_libraries(llvmpl0 ${llvm_libs})
+
+add_custom_target(pl0lib DEPENDS write.ll)
+add_custom_command(OUTPUT write.ll
+  COMMAND clang -emit-llvm -S -O -o write.ll ${CMAKE_SOURCE_DIR}/write.c
+)
+add_dependencies(llvmpl0 pl0lib)

@@ -13,9 +13,22 @@ using namespace pl0;
 Frontend::Frontend(const std::string &path)
     : lexer(path), context(), module(new llvm::Module("top", context)),
       builder(context) {
-  // int main()
   cur_token = std::move(lexer.nextToken());
   peek_token = std::move(lexer.nextToken());
+
+  {
+    std::vector<llvm::Type *> param_types(1, builder.getInt64Ty());
+    auto *funcType =
+        llvm::FunctionType::get(builder.getInt64Ty(), param_types, false);
+    writeFunc = llvm::Function::Create(
+        funcType, llvm::Function::ExternalLinkage, "write", module);
+  }
+
+  {
+    auto *funcType = llvm::FunctionType::get(builder.getInt64Ty(), false);
+    writelnFunc = llvm::Function::Create(
+        funcType, llvm::Function::ExternalLinkage, "writeln", module);
+  }
 }
 
 void Frontend::compile() {
@@ -24,7 +37,7 @@ void Frontend::compile() {
       funcType, llvm::Function::ExternalLinkage, "main", module);
   auto *entry = llvm::BasicBlock::Create(context, "entrypoint", mainFunc);
   block(mainFunc);
-  builder.CreateRet(builder.getInt32(1));
+  builder.CreateRet(builder.getInt64(1));
 }
 
 void Frontend::block(llvm::Function *func) {
@@ -196,9 +209,13 @@ void Frontend::statement() {
     builder.SetInsertPoint(llvm::BasicBlock::Create(context, "dummy"));
     return;
   case TokenType::Write:
-    unsupportedError("write statement");
+    nextToken();
+    builder.CreateCall(writeFunc, std::vector<llvm::Value *>(1, expression()));
+    break;
   case TokenType::Writeln:
-    unsupportedError("writeln statement");
+    nextToken();
+    builder.CreateCall(writelnFunc);
+    break;
   default:;
   }
 }
@@ -258,7 +275,7 @@ void Frontend::statementWhile() {
     curFunc->getBasicBlockList().push_back(body_block);
     builder.SetInsertPoint(body_block);
     statement();
-    builder.CreateBr(merge_block);
+    builder.CreateBr(cond_block);
   }
 
   curFunc->getBasicBlockList().push_back(merge_block);
